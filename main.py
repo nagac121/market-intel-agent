@@ -1,6 +1,7 @@
 import streamlit as st
 from graph import graph
 from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 
 st.set_page_config(page_title="Deep Market Intel", page_icon="🕵️‍♂️")
 st.title("🕵️‍♂️ Deep Market Intelligence Agent")
@@ -9,7 +10,7 @@ st.title("🕵️‍♂️ Deep Market Intelligence Agent")
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = "1"
 
-config = {"configurable": {"thread_id": st.session_state.thread_id}}
+config: RunnableConfig = {"configurable": {"thread_id": str(st.session_state.thread_id)}}
 
 query = st.text_input("What industry/company should I research?")
 

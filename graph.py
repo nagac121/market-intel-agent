@@ -4,6 +4,7 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from models import model_with_tools, groq_model
 from langchain_core.messages import HumanMessage, AIMessage
+from models import groq_model # Ensure this is imported
 
 # 1. Define the State (what the agents remember)
 class AgentState(TypedDict):
@@ -11,8 +12,9 @@ class AgentState(TypedDict):
 
 # 2. Define the Nodes (the workers)
 def researcher_node(state: AgentState):
-    """Gemini looks at the query and calls Tavily if needed."""
-    response = model_with_tools.invoke(state["messages"])
+    # Groq is much faster and less likely to hit 429 errors on start
+    # We use the groq_model which you already initialized in models.py
+    response = groq_model.invoke(state["messages"])
     return {"messages": [response]}
 
 def analyst_node(state: AgentState):

@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from pydantic import SecretStr
+from tools import tools
 
 load_dotenv()
 
@@ -17,6 +18,9 @@ gemini_model = ChatGoogleGenerativeAI(
     temperature=0,
     api_key=SecretStr(_google_api_key) if _google_api_key else None
 )
+
+# Bind Tavily (and other) tools so Gemini can decide to search.
+model_with_tools = gemini_model.bind_tools(tools)
 
 # Groq Llama 3: Our "Fast Analyst"
 # Use this for quick summaries or formatting
