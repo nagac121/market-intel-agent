@@ -126,7 +126,7 @@ else:
 # --- HUMAN IN THE LOOP UI ---
 # Check if the graph is currently paused
 state = graph.get_state(config)
-if state.next: # If there is a next step (meaning it's interrupted)
+if state.next and st.session_state.research_messages:  # Only show if we actually have results displayed
     st.warning("⚠️ Researcher has finished. Review the results above.")
     
     col1, col2 = st.columns(2)
