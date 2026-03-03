@@ -11,7 +11,7 @@ class AgentState(TypedDict):
 
 # 2. Define the Nodes (the workers)
 def researcher_node(state: AgentState):
-    """Gemini + tools does the initial research via Tavily, etc."""
+    """Groq + tools does the initial research via Tavily, etc."""
     response = groq_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
