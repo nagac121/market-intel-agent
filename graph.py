@@ -3,7 +3,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 from models import groq_model, groq_with_tools
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage
 
 # 1. Define the State (what the agents remember)
 class AgentState(TypedDict):
