@@ -48,7 +48,10 @@ config: RunnableConfig = {
     "configurable": {"thread_id": str(st.session_state.thread_id)}
 }
 
-query = st.text_input("What industry/company should I research?")
+query = st.text_input(
+    "What industry/company should I research?",
+    autocomplete="on",
+)
 
 # Container that always renders the latest research above the HITL section
 result_container = st.container()
@@ -153,22 +156,27 @@ else:
                 st.markdown(msg)
 
 # --- HUMAN IN THE LOOP UI ---
-# Check if the graph is currently paused
 state = graph.get_state(config)
-if (
-    state.next and st.session_state.research_messages
-):  # Only show if we actually have results displayed
-    st.warning("⚠️ Researcher has finished. Review the results above.")
 
+# Show HITL when graph is paused (before analyst) and we have results
+if state.next and st.session_state.research_messages:
+    st.warning("⚠️ Researcher has finished. Review the results above.")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ Approve & Analyze"):
-            # Resume the graph with NO changes
             for event in graph.stream(None, config, stream_mode="values"):
-                st.markdown(event["messages"][-1].content)
+                last_content = event["messages"][-1].content
+                if last_content:
+                    st.session_state.research_messages.append(last_content)
+                    st.markdown(last_content)
     with col2:
         if st.button("❌ Clear Research"):
-            # Clear results and graph state, return to initial state
             st.session_state.research_messages = []
             st.session_state.thread_id = str(uuid.uuid4())
             st.rerun()
+# Show Clear only when we have content (including after SWOT is displayed)
+elif st.session_state.research_messages:
+    if st.button("❌ Clear Research"):
+        st.session_state.research_messages = []
+        st.session_state.thread_id = str(uuid.uuid4())
+        st.rerun()
