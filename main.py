@@ -41,6 +41,8 @@ if "thread_id" not in st.session_state:
     st.session_state.thread_id = "1"
 if "research_messages" not in st.session_state:
     st.session_state.research_messages = []
+if "approved_messages" not in st.session_state:
+    st.session_state.approved_messages = []
 if "is_researching" not in st.session_state:
     st.session_state.is_researching = False
 
@@ -63,6 +65,7 @@ if start_clicked:
     else:
         st.session_state.is_researching = True
         st.session_state.research_messages = []
+        st.session_state.approved_messages = []
         with result_container:
             with st.spinner("🕵️‍♂️ Agent is researching..."):
                 input_message = HumanMessage(content=query)
@@ -154,6 +157,10 @@ else:
             st.subheader("📊 Research Results")
             for msg in st.session_state.research_messages:
                 st.markdown(msg)
+        if st.session_state.approved_messages:
+            st.subheader("✅ Approved Result")
+            for msg in st.session_state.approved_messages:
+                st.markdown(msg)
 
 # --- HUMAN IN THE LOOP UI ---
 state = graph.get_state(config)
@@ -164,19 +171,22 @@ if state.next and st.session_state.research_messages:
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ Approve & Analyze"):
-            for event in graph.stream(None, config, stream_mode="values"):
-                last_content = event["messages"][-1].content
-                if last_content:
-                    st.session_state.research_messages.append(last_content)
-                    st.markdown(last_content)
+            with st.spinner("🕵️‍♂️ Analyzing..."):
+                for event in graph.stream(None, config, stream_mode="values"):
+                    last_content = event["messages"][-1].content
+                    if last_content:
+                        st.session_state.approved_messages.append(last_content)
+            st.rerun()
     with col2:
         if st.button("❌ Clear Research"):
             st.session_state.research_messages = []
+            st.session_state.approved_messages = []
             st.session_state.thread_id = str(uuid.uuid4())
             st.rerun()
-# Show Clear only when we have content (including after SWOT is displayed)
-elif st.session_state.research_messages:
+# Show Clear when we have content (research and/or approved)
+elif st.session_state.research_messages or st.session_state.approved_messages:
     if st.button("❌ Clear Research"):
         st.session_state.research_messages = []
+        st.session_state.approved_messages = []
         st.session_state.thread_id = str(uuid.uuid4())
         st.rerun()
