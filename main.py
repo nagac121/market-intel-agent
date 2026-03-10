@@ -158,7 +158,9 @@ else:
             for msg in st.session_state.research_messages:
                 st.markdown(msg)
         if st.session_state.approved_messages:
+            st.divider()
             st.subheader("✅ Approved Result")
+            st.divider()
             for msg in st.session_state.approved_messages:
                 st.markdown(msg)
 
