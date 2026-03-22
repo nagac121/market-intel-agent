@@ -6,7 +6,7 @@ An autonomous AI research squad designed to perform deep-dive market analysis, v
 
 ## 🚀 Overview
 
-In 2026, information moves faster than humans can read. This project implements a **Multi-Agent Orchestration** pattern to solve the "hallucination problem" in AI research. Unlike a simple chatbot, this system uses a **Stateful Graph** to coordinate specialized agents, ensuring that data is researched, analyzed, and critiqued before reaching the user.
+Information moves faster than humans can read. This project implements a **Multi-Agent Orchestration** pattern to solve the "hallucination problem" in AI research. Unlike a simple chatbot, this system uses a **Stateful Graph** to coordinate specialized agents, ensuring that data is researched, analyzed, and critiqued before reaching the user.
 
 ### Key Highlights:
 
