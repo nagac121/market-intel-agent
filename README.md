@@ -1,61 +1,146 @@
-# 🤖 Deep Market Intelligence Agent (Multi-Agent System)
+# Deep Market Intelligence Agent
 
-An autonomous AI research squad designed to perform deep-dive market analysis, verify sources, and generate strategy reports. Built with **LangGraph**, **Gemini 2.0**, and **Groq**.
-
----
-
-## 🚀 Overview
-
-In 2026, information moves faster than humans can read. This project implements a **Multi-Agent Orchestration** pattern to solve the "hallucination problem" in AI research. Unlike a simple chatbot, this system uses a **Stateful Graph** to coordinate specialized agents, ensuring that data is researched, analyzed, and critiqued before reaching the user.
-
-### Key Highlights:
-
-- **Human-in-the-Loop (HITL):** The agent pauses to ask for user approval after the research phase, preventing "runaway" costs and ensuring search quality.
-- **Multi-Model Routing:** Uses **Gemini 2.0 Flash** for high-context research and **Groq (Llama 3.3)** for rapid analysis/reporting.
-- **Persistence:** Leverages LangGraph's checkpointers to "remember" conversation state even if the session is interrupted.
+An AI-powered market research application that performs web research and generates SWOT-style strategic recommendations. Built with **Streamlit**, **LangGraph**, **Groq**, and **Tavily**.
 
 ---
 
-## 🏗️ The Architecture
+## Introduction
 
-The system is built as a **Directed Acyclic Graph (DAG)** using LangGraph:
+This project implements an agentic workflow for market research: you enter a topic (e.g., company or industry), the system searches the web via Tavily, and then produces a structured SWOT analysis and strategic recommendation using Groq (Llama 3.3). A **Human-in-the-Loop** step lets you review research results before approving the analysis, keeping control over cost and quality.
 
-1. **The Researcher:** Uses Tavily Search API to gather real-time data from the web.
-2. **The Human-in-the-Loop:** Displays found sources; waits for user feedback ("Proceed" or "Search more").
-3. **The Analyst:** Synthesizes raw data into a structured SWOT analysis.
-4. **The Critic:** Reviews the final report for accuracy and formatting.
+**Key features:**
 
----
-
-## 🛠️ Tech Stack
-
-- **Orchestration:** [LangGraph](https://github.com/langchain-ai/langgraph)
-- **LLMs:** Google Gemini 2.0 Flash, Groq (Llama 3.3-70B)
-- **Search Tool:** Tavily Search API
-- **Observability:** [LangSmith](https://smith.langchain.com/) (Full trace monitoring)
-- **Interface:** Streamlit (UI/UX)
-- **Environment:** WSL2 / Python 3.10+
+- **Web search** — Uses Tavily for real-time information (avoids LLM knowledge cutoff)
+- **Human-in-the-Loop** — Pauses after research for review; Approve or Clear before analysis
+- **SWOT analysis** — Generates structured strategic output from approved research
+- **Session state** — LangGraph checkpointer preserves conversation state
 
 ---
 
-## 🚦 Getting Started
+## Architecture
 
-### 1. Prerequisites
+The workflow is modeled as a LangGraph DAG:
 
-- Python 3.10+
-- API Keys for: Google AI Studio, Groq, Tavily, and LangSmith.
+```
+START → Researcher (Groq + Tavily) → [HITL Pause] → Analyst (Groq) → END
+```
 
-### 2. Installation
+1. **Researcher** — Groq with Tavily tools runs searches and gathers sources
+2. **Pause** — Displays research results; user chooses **Approve & Analyze** or **Clear Research**
+3. **Analyst** — Groq synthesizes approved research into a SWOT analysis
+
+---
+
+## Tech Stack
+
+| Layer         | Technology                    |
+|---------------|-------------------------------|
+| UI            | Streamlit                     |
+| Orchestration | LangGraph                     |
+| LLM           | Groq (Llama 3.3 70B)          |
+| Search        | Tavily Search API             |
+| Config        | python-dotenv                 |
+
+---
+
+## Prerequisites
+
+- **Python 3.10+**
+- **API keys:**
+  - [Groq](https://console.groq.com/) — free tier available
+  - [Tavily](https://app.tavily.com/) — free tier available
+
+---
+
+## Installation
+
+### 1. Clone the repository
 
 ```bash
-# Clone the repo
 git clone https://github.com/nagac121/market-intel-agent.git
 cd market-intel-agent
+```
 
-# Set up virtual environment
-python3 -m venv venv
-source venv/bin/activate
+### 2. Create and activate a virtual environment
 
-# Install dependencies
+**Windows (PowerShell):**
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+**macOS / Linux:**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
+
+### 4. Configure environment variables
+
+Copy the example env file and add your API keys:
+
+```bash
+copy .env.example .env
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item .env.example .env
+```
+
+**macOS / Linux:**
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your keys:
+
+```
+GROQ_API_KEY=your_groq_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
+```
+
+---
+
+## Run the application
+
+```bash
+python -m streamlit run main.py
+```
+
+The app opens in your browser at `http://localhost:8501`.
+
+---
+
+## Usage
+
+1. Enter a research topic (e.g., "Apple Vision Pro 2026", "EV market trends")
+2. Click **Start Research** — the agent searches the web and displays results
+3. Review the research results, then click **Approve & Analyze** for a SWOT report, or **Clear Research** to reset
+4. Use **Clear Research** anytime to return to a clean state
+
+---
+
+## Project Structure
+
+```
+market-intel-agent/
+├── main.py          # Streamlit UI and orchestration
+├── graph.py         # LangGraph workflow (researcher → analyst)
+├── models.py        # Groq model and tools binding
+├── tools.py         # Tavily search tool
+├── .env.example     # Template for API keys
+└── requirements.txt
+```
+
+---
+
+## License
+
+MIT
