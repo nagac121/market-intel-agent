@@ -45,6 +45,8 @@ if "approved_messages" not in st.session_state:
     st.session_state.approved_messages = []
 if "is_researching" not in st.session_state:
     st.session_state.is_researching = False
+if "waiting_for_approval" not in st.session_state:
+    st.session_state.waiting_for_approval = False
 
 config: RunnableConfig = {
     "configurable": {"thread_id": str(st.session_state.thread_id)}
@@ -58,12 +60,56 @@ query = st.text_input(
 # Container that always renders the latest research above the HITL section
 result_container = st.container()
 
-start_clicked = st.button("Start Research", disabled=st.session_state.is_researching)
+# --- Button section: layout varies by state ---
+has_content = st.session_state.research_messages or st.session_state.approved_messages
+waiting_for_approval = st.session_state.waiting_for_approval
+
+start_clicked = False
+approve_clicked = False
+clear_clicked = False
+
+if waiting_for_approval and st.session_state.research_messages:
+    st.warning("⚠️ Researcher has finished. Review the results above.")
+    col1, col2 = st.columns(2)
+    with col1:
+        approve_clicked = st.button("✅ Approve & Analyze")
+    with col2:
+        clear_clicked = st.button("❌ Clear Research")
+elif has_content:
+    col1, col2 = st.columns(2)
+    with col1:
+        start_clicked = st.button(
+            "Start Research", disabled=st.session_state.is_researching
+        )
+    with col2:
+        clear_clicked = st.button("❌ Clear Research")
+else:
+    start_clicked = st.button(
+        "Start Research", disabled=st.session_state.is_researching
+    )
+
+if clear_clicked:
+    st.session_state.research_messages = []
+    st.session_state.approved_messages = []
+    st.session_state.thread_id = str(uuid.uuid4())
+    st.session_state.waiting_for_approval = False
+    st.rerun()
+
+if approve_clicked:
+    with st.spinner("🕵️‍♂️ Analyzing..."):
+        for event in graph.stream(None, config, stream_mode="values"):
+            last_content = event["messages"][-1].content
+            if last_content:
+                st.session_state.approved_messages.append(last_content)
+    st.session_state.waiting_for_approval = False
+    st.rerun()
+
 if start_clicked:
     if not query.strip():
         st.warning("Please enter a research topic before starting research.")
     else:
         st.session_state.is_researching = True
+        st.session_state.waiting_for_approval = False
         st.session_state.research_messages = []
         st.session_state.approved_messages = []
         with result_container:
@@ -151,6 +197,9 @@ if start_clicked:
                     st.session_state.research_messages.append(display_msg)
                     st.markdown(display_msg)
         st.session_state.is_researching = False
+        st.session_state.waiting_for_approval = True
+        # Rerun so the UI button section rebuilds using waiting_for_approval=True
+        st.rerun()
 else:
     with result_container:
         if st.session_state.research_messages:
@@ -163,32 +212,3 @@ else:
             st.divider()
             for msg in st.session_state.approved_messages:
                 st.markdown(msg)
-
-# --- HUMAN IN THE LOOP UI ---
-state = graph.get_state(config)
-
-# Show HITL when graph is paused (before analyst) and we have results
-if state.next and st.session_state.research_messages:
-    st.warning("⚠️ Researcher has finished. Review the results above.")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ Approve & Analyze"):
-            with st.spinner("🕵️‍♂️ Analyzing..."):
-                for event in graph.stream(None, config, stream_mode="values"):
-                    last_content = event["messages"][-1].content
-                    if last_content:
-                        st.session_state.approved_messages.append(last_content)
-            st.rerun()
-    with col2:
-        if st.button("❌ Clear Research"):
-            st.session_state.research_messages = []
-            st.session_state.approved_messages = []
-            st.session_state.thread_id = str(uuid.uuid4())
-            st.rerun()
-# Show Clear when we have content (research and/or approved)
-elif st.session_state.research_messages or st.session_state.approved_messages:
-    if st.button("❌ Clear Research"):
-        st.session_state.research_messages = []
-        st.session_state.approved_messages = []
-        st.session_state.thread_id = str(uuid.uuid4())
-        st.rerun()
