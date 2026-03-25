@@ -21,8 +21,34 @@ This project implements an agentic workflow for market research: you enter a top
 
 The workflow is modeled as a LangGraph DAG:
 
-```
-START → Researcher (Groq + Tavily) → [HITL Pause] → Analyst (Groq) → END
+```mermaid
+
+flowchart TD
+    %% User and UI Layer
+    U[User] -->|Enter Topic| UI[Streamlit UI]
+    UI --> G[LangGraph Workflow]
+
+    %% Orchestration and Logic
+    subgraph Engine [AI Orchestration Layer]
+        G --> R[Researcher Node]
+        R --> T[Tavily Search API]
+        T --> R
+        
+        G --> M[MemorySaver]
+        M -.->|Persists State| UI
+    end
+
+    %% Human in the Loop
+    R --> UI
+    UI -->|Review & Approve| HITL{HITL Pause}
+    HITL --> A[Analyst Node]
+    
+    %% Final Result
+    A -->|Final Report| UI
+
+    %% Styling
+    style HITL fill:#f96,stroke:#333,stroke-width:2px
+    style G fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 1. **Researcher** — Groq with Tavily tools runs searches and gathers sources
