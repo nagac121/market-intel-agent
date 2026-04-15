@@ -20,6 +20,8 @@ This project implements an agentic workflow for market research: you enter a top
 ## Architecture
 
 The workflow is modeled as a LangGraph DAG:
+![Architecture Diagram](docs/images/market-intel-agent-arch.png)
+
 
 ```mermaid
 
