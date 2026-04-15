@@ -54,6 +54,7 @@ config: RunnableConfig = {
 
 query = st.text_input(
     "What industry/company should I research?",
+    placeholder="e.g., Latest news on Apple Vision Pro 2026, EV market trends",
     autocomplete="on",
 )
 

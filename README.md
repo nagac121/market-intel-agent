@@ -3,6 +3,9 @@
 An AI-powered market research application that performs web research and generates SWOT-style strategic recommendations. Built with **Streamlit**, **LangGraph**, **Groq**, and **Tavily**.
 
 ---
+## Live Demo
+
+[Launch App](https://market-intel-agent.streamlit.app/)
 
 ## Introduction
 
